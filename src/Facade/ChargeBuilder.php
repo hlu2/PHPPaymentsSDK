@@ -22,7 +22,7 @@ class ChargeBuilder
         $request = RequestFactory::createStandardIntuitRequest(RequestType::CHARGE);
         $request->setMethod(RequestInterface::POST)
               ->setUrl($client->getUrl() . EndpointUrls::CHARGE_URL)
-              ->setHeader($client->getStandardHeaderWithRequestID($requestId))
+              ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId))
               ->setBody(FacadeConverter::getJsonFrom($charge));
         return $request;
     }
@@ -35,7 +35,7 @@ class ChargeBuilder
         $request = RequestFactory::createStandardIntuitRequest(RequestType::CHARGE);
         $request->setMethod(RequestInterface::GET)
               ->setUrl($client->getUrl() . EndpointUrls::CHARGE_URL . "/" . $chargeId)
-              ->setHeader($client->getStandardHeaderWithRequestID($requestId));
+              ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId));
         return $request;
     }
 
@@ -47,7 +47,7 @@ class ChargeBuilder
         $request = RequestFactory::createStandardIntuitRequest(RequestType::CHARGE);
         $request->setMethod(RequestInterface::POST)
                   ->setUrl($client->getUrl() . EndpointUrls::CHARGE_URL . "/" . $chargeId . "/capture")
-                  ->setHeader($client->getStandardHeaderWithRequestID($requestId))
+                  ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId))
                   ->setBody(FacadeConverter::getJsonFrom($charge));
         return $request;
     }
@@ -60,7 +60,7 @@ class ChargeBuilder
         $request = RequestFactory::createStandardIntuitRequest(RequestType::CHARGE);
         $request->setMethod(RequestInterface::POST)
                   ->setUrl($client->getUrl() . EndpointUrls::CHARGE_URL . "/" . $chargeId . "/refunds")
-                  ->setHeader($client->getStandardHeaderWithRequestID($requestId))
+                  ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId))
                   ->setBody(FacadeConverter::getJsonFrom($charge));
         return $request;
     }
@@ -73,7 +73,7 @@ class ChargeBuilder
         $request = RequestFactory::createStandardIntuitRequest(RequestType::CHARGE);
         $request->setMethod(RequestInterface::GET)
                 ->setUrl($client->getUrl() . EndpointUrls::CHARGE_URL . "/" . $chargeId . "/refunds" . "/" . $refundId)
-                ->setHeader($client->getStandardHeaderWithRequestID($requestId));
+                ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId));
         return $request;
     }
 }

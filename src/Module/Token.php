@@ -4,12 +4,9 @@ namespace QuickBooksOnline\Payments\Module;
 use QuickBooksOnline\Payments\Facade\FacadeConverter;
 
 
-class CaptureDetail {
+class Token {
 
-  public $created;
-  public $amount;
-  public $context;
-  public $description;
+  public $value;
 
   public function __construct(array $array = array()){
     foreach($array as $name => $value){

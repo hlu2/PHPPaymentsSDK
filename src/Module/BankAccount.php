@@ -3,7 +3,7 @@ namespace QuickBooksOnline\Payments\Module;
 use QuickBooksOnline\Payments\Facade\FacadeConverter;
 
 
-class Card extends Entity{
+class BankAccount extends Entity{
   public $updated;
   public $name;
   public $routingNumber;
@@ -27,6 +27,8 @@ class Card extends Entity{
                 $this->{$name} = $value;
               }
           }
+       } else{
+         throw new \RuntimeException("Property name: [" . $name . "] is not a valid field for: [" . get_class($this) . "]. Please check your keys.");
        }
     }
   }

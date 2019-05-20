@@ -1,28 +1,26 @@
 <?php
 namespace QuickBooksOnline\Payments;
 
-use QuickBooksOnline\Payments\Facade\ChargeBuilder;
-use QuickBooksOnline\Payments\Facade\CardBuilder;
+use QuickBooksOnline\Payments\Facade\{ChargeBuilder, CardBuilder, TokenBuilder, ECheckBuilder};
 use QuickBooksOnline\Payments\Facade\FacadeConverter;
 use QuickBooksOnline\Payments\HttpClients\core\ClientFactory;
 use QuickBooksOnline\Payments\HttpClients\Response\IntuitResponse;
 use QuickBooksOnline\Payments\HttpClients\Response\ResponseInterface;
 use QuickBooksOnline\Payments\HttpClients\Response\ResponseFactory;
-
-use QuickBooksOnline\Payments\Module\Charge;
-use QuickBooksOnline\Payments\Module\Card;
+use QuickBooksOnline\Payments\Module\{Charge, Card, ECheck, Token};
 
 class PaymentClient
 {
-    private $accessToken;
-    private $refreshToken;
-    private $enviornment;
-    private $baseUrl;
+
+    /**
+     * The Http context for the client.
+     */
+    private $context;
 
     /**
      * A list of interceptors to be used in the client
      */
-    private $interceptors;
+    private $interceptors = array();
 
 
     private $oauth2Authenticator;
@@ -34,6 +32,7 @@ class PaymentClient
     public function __construct()
     {
         $this->httpClient = ClientFactory::buildCurlClient();
+        $this->context = new ClientContext();
     }
 
 
@@ -43,11 +42,11 @@ class PaymentClient
     public function charge(Charge $charge, string $requestId = "") : ResponseInterface
     {
         if (empty($requestId)) {
-            $requestId = $this->generateRequestID();
+            $requestId = ClientContext::generateRequestID();
         }
         $request = ChargeBuilder::createChargeRequest($charge, $requestId, $this);
         $response = $this->httpClient->send($request);
-        $this->updateResponseBodyToObj($response);
+        FacadeConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
@@ -57,11 +56,11 @@ class PaymentClient
     public function retrieveCharge(string $chargeId, string $requestId = "") : ResponseInterface
     {
         if (empty($requestId)) {
-            $requestId = $this->generateRequestID();
+            $requestId = ClientContext::generateRequestID();
         }
         $request = ChargeBuilder::createGetChargeRequest($chargeId, $requestId, $this);
         $response = $this->httpClient->send($request);
-        $this->updateResponseBodyToObj($response);
+        FacadeConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
@@ -71,11 +70,11 @@ class PaymentClient
     public function captureCharge(Charge $charge, string $chargeId, string $requestId = "") : ResponseInterface
     {
         if (empty($requestId)) {
-            $requestId = $this->generateRequestID();
+            $requestId = ClientContext::generateRequestID();
         }
         $request = ChargeBuilder::createCaptureChargeRequest($charge, $chargeId, $requestId, $this);
         $response = $this->httpClient->send($request);
-        $this->updateResponseBodyToObj($response);
+        FacadeConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
@@ -85,25 +84,25 @@ class PaymentClient
     public function refundCharge(Charge $charge, string $chargeId, string $requestId = "") : ResponseInterface
     {
         if (empty($requestId)) {
-            $requestId = $this->generateRequestID();
+            $requestId = ClientContext::generateRequestID();
         }
         $request = ChargeBuilder::createRefundChargeRequest($charge, $chargeId, $requestId, $this);
         $response = $this->httpClient->send($request);
-        $this->updateResponseBodyToObj($response);
+        FacadeConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
     /**
      * Get a refund by ID.
      */
-    public function getRefundDetail($chargeId, $refundId, string $requestId = ""): ResponseInterface
+    public function getRefundDetail(string $chargeId, string $refundId, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
-            $requestId = $this->generateRequestID();
+            $requestId = ClientContext::generateRequestID();
         }
         $request = ChargeBuilder::refundBy($chargeId, $refundId, $requestId, $this);
         $response = $this->httpClient->send($request);
-        $this->updateResponseBodyToObj($response);
+        FacadeConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
@@ -113,25 +112,25 @@ class PaymentClient
     public function createCard(Card $card, $customerID, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
-            $requestId = $this->generateRequestID();
+            $requestId = ClientContext::generateRequestID();
         }
         $request = CardBuilder::createCard($card, $customerID, $requestId, $this);
         $response = $this->httpClient->send($request);
-        $this->updateResponseBodyToObj($response);
+        FacadeConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
     /**
     * Delete a Card
     */
-    public function deleteCard($customerID, $cardId, string $requestId = ""): ResponseInterface
+    public function deleteCard($customerID, string $cardId, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
-            $requestId = $this->generateRequestID();
+            $requestId = ClientContext::generateRequestID();
         }
         $request = CardBuilder::deleteCard($customerID, $cardId, $requestId, $this);
         $response = $this->httpClient->send($request);
-        $this->updateResponseBodyToObj($response);
+        FacadeConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
@@ -141,70 +140,89 @@ class PaymentClient
     public function getAllCardsFor($customerID, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
-            $requestId = $this->generateRequestID();
+            $requestId = ClientContext::generateRequestID();
         }
         $request = CardBuilder::getAllCards($customerID, $requestId, $this);
         $response = $this->httpClient->send($request);
-        $this->updateResponseBodyToObj($response);
+        FacadeConverter::updateResponseBodyToObj($response);
+        return $response;
+    }
+
+
+    /**
+    * Create a token
+    */
+    public function createCardFromToken($customerID, string $tokenValue, string $requestId = ""): ResponseInterface
+    {
+        if (empty($requestId)) {
+            $requestId = ClientContext::generateRequestID();
+        }
+        $request = CardBuilder::createCardFromToken($customerID, $tokenValue, $requestId, $this);
+        $response = $this->httpClient->send($request);
+        FacadeConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
     /**
-     * Auto generate request ID
-     */
-    private function generateRequestID() : string
+    * Create a token
+    */
+    public function createToken($body, bool $isIE = false, string $requestId = ""): ResponseInterface
     {
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $randomString = '';
-        for ($i = 0; $i < 20; $i++) {
-            $index = rand(0, strlen($characters) - 1);
-            $randomString .= $characters[$index];
+        if (empty($requestId)) {
+            $requestId = ClientContext::generateRequestID();
         }
-
-        return $randomString;
+        $request = TokenBuilder::createToken($body, $isIE, $requestId, $this);
+        $response = $this->httpClient->send($request);
+        FacadeConverter::updateResponseBodyToObj($response);
+        return $response;
     }
 
-    private function updateResponseBodyToObj(&$response)
+    /**
+    * Create a debit
+    */
+    public function debit(ECheck $debitBody, string $requestId = ""): ResponseInterface
     {
-        if (!$response->failed() && !empty($response->getBody())) {
-            $objBody = FacadeConverter::objectFrom($response->getBody(), $response->getAssociatedRequest()->getRequestType());
-            $response->setBody($objBody);
+        if (empty($requestId)) {
+            $requestId = ClientContext::generateRequestID();
         }
+        $request = ECheckBuilder::debit($debitBody, $requestId, $this);
+        $response = $this->httpClient->send($request);
+        FacadeConverter::updateResponseBodyToObj($response);
+        return $response;
     }
 
-
-
-    public function getStandardHeaderWithRequestID(string $requestId) : array
+    /**
+    * Retrieve an Echeck
+    */
+    public function retrieveECheck(string $echeckId, string $requestId = ""): ResponseInterface
     {
-        return array(
-         'Accept' => 'application/json',
-         'Content-Type' => 'application/json',
-         'Request-Id' => $requestId,
-         'Authorization' => "Bearer " . $this->accessToken
-       );
+        if (empty($requestId)) {
+            $requestId = ClientContext::generateRequestID();
+        }
+        $request = ECheckBuilder::retrieveECheck($echeckId, $requestId, $this);
+        $response = $this->httpClient->send($request);
+        FacadeConverter::updateResponseBodyToObj($response);
+        return $response;
     }
 
-    public function getStandardHeaderWithRequestIDForDelete(string $requestId) : array
+    /**
+    * Retrieve a Refund
+    */
+    public function retrieveECheck(string $echeckId, string $requestId = ""): ResponseInterface
     {
-        return array(
-         'Content-Type' => 'application/json',
-         'Request-Id' => $requestId,
-         'Authorization' => "Bearer " . $this->accessToken
-       );
+        if (empty($requestId)) {
+            $requestId = ClientContext::generateRequestID();
+        }
+        $request = ECheckBuilder::retrieveECheck($echeckId, $requestId, $this);
+        $response = $this->httpClient->send($request);
+        FacadeConverter::updateResponseBodyToObj($response);
+        return $response;
     }
 
-    public function getNonAuthHeaderWithRequestID() : array
-    {
-        return array(
-         'Accept' => 'application/json',
-         'Request-Id' => $requestId,
-         'Content-Type' => 'application/json'
-       );
-    }
 
     public function getUrl()
     {
-        return $this->baseUrl;
+        return $this->context->getBaseUrl();
     }
 
     /**
@@ -216,7 +234,7 @@ class PaymentClient
         if (!isset($url) || is_empty($url)) {
             throw new \RuntimeException("Set empty base url for Payments API.");
         }
-        $this->baseUrl = $url;
+        $this->context->setBaseUrl($url);
         return $this;
     }
 
@@ -227,7 +245,7 @@ class PaymentClient
      */
     public function getAccessToken()
     {
-        return $this->accessToken;
+        return $this->context->getAccessToken();
     }
 
     /**
@@ -239,7 +257,7 @@ class PaymentClient
      */
     public function setAccessToken($accessToken)
     {
-        $this->accessToken = $accessToken;
+        $this->context->setAccessToken($accessToken);
 
         return $this;
     }
@@ -251,7 +269,7 @@ class PaymentClient
      */
     public function getRefreshToken()
     {
-        return $this->refreshToken;
+        return $this->context->getRefreshToken();
     }
 
     /**
@@ -263,7 +281,7 @@ class PaymentClient
      */
     public function setRefreshToken($refreshToken)
     {
-        $this->refreshToken = $refreshToken;
+        $this->context->setRefreshToken($refreshToken);
 
         return $this;
     }
@@ -277,13 +295,7 @@ class PaymentClient
      */
     public function setEnviornment($environment)
     {
-        $env = strtolower($environment);
-        if (substr($env, 0, strlen("prod")) === "prod") {
-            $this->baseUrl =  Config::PRODUCTION_URL;
-        } else {
-            $this->baseUrl =  Config::SANDBOX_URL;
-        }
-        return $this;
+      $this->context->setEnviornment($environment);
     }
 
     /**
@@ -291,23 +303,32 @@ class PaymentClient
      *
      * @return mixed
      */
-    public function getInterceptors()
+    public function getAllInterceptors()
     {
         return $this->interceptors;
     }
 
-    /**
-     * Set the value of A list of interceptors to be used in the client
-     *
-     * @param mixed interceptors
-     *
-     * @return self
-     */
-    public function setInterceptors($interceptors)
-    {
-        $this->interceptors = $interceptors;
+    public function getInterceptor(string $interceptorName){
+        if(array_key_exists($interceptorName, $this->interceptors)){
+            return $this->interceptors[$interceptorName];
+        }else{
+            return null;
+        }
+    }
 
+    public function addInterceptor($name, $interceptor)
+    {
+        $interceptor = $this->getInterceptor($name);
+        if(!isset($interceptor)){
+            $this->interceptors[$name] = $interceptor;
+        }else{
+          throw new \RuntimeException("Interceptor with name: " . $name . " already exists.");
+        }
         return $this;
+    }
+
+    public function removeInterceptor(){
+
     }
 
     /**
@@ -357,4 +378,29 @@ class PaymentClient
 
         return $this;
     }
+
+    /**
+     * Get the value of The Http context for the client.
+     *
+     * @return mixed
+     */
+    public function getContext()
+    {
+        return $this->context;
+    }
+
+    /**
+     * Set the value of The Http context for the client.
+     *
+     * @param mixed context
+     *
+     * @return self
+     */
+    public function setContext(ClientContext $context)
+    {
+        $this->context = $context;
+
+        return $this;
+    }
+
 }

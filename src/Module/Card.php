@@ -17,6 +17,9 @@ class Card extends Entity{
    public $isBusiness;
    public $isLevel3Eligible;
    public $cvc;
+   public $entityVersion;
+   public $entityId;
+   public $entityType;
 
    public function __construct(array $array = array()){
      foreach($array as $name => $value){
@@ -30,6 +33,8 @@ class Card extends Entity{
                  $this->{$name} = $value;
                }
            }
+        } else{
+          throw new \RuntimeException("Property name: [" . $name . "] is not a valid field for: [" . get_class($this) . "]. Please check your keys.");
         }
      }
    }

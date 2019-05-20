@@ -63,5 +63,13 @@ class FacadeConverter{
           }
     }
 
+    public static function updateResponseBodyToObj(&$response)
+    {
+        if (!$response->failed() && !empty($response->getBody())) {
+            $objBody = FacadeConverter::objectFrom($response->getBody(), $response->getAssociatedRequest()->getRequestType());
+            $response->setBody($objBody);
+        }
+    }
+
 
 }

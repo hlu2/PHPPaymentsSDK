@@ -11,10 +11,10 @@ final class CardTest extends TestCase
 {
     private function createInstance()
     {
-        $client = new PaymentClient();
-        $client->setAccessToken("eyJlbmMiOiJBMTI4Q0JDLUhTMjU2IiwiYWxnIjoiZGlyIn0..r4Tmp3d7MMF48XZpF_i3Lg.Yd9fJFNIthHOU99f4sbsKeEDyEpAWiQcVLpxTScnaUAR4HSyGLrhbz_ED0YvE6kHsTBGhEIiwccfBtVKmtsfrOWni6Ibtl3biyfOuOL5h4NQ8Q2jII1JHlGKKeN73Vo18ISYAyHEd_mBf5Cst2Z2VndfSaI_vBVZPpN50ckXZ-OkPT8Ng8SPo6oaG6UeDm6KXwiP-EeFaDMKJHe0UmF5C2PnOrCi7vbSEhSbGO5H6PGKDO7mCvvYLtEWBck7elbtjBUf1LR7TclK6ub3CoGtkck_XyE8GEjugC_2nEMSyJSomSBSHXjeg_xwsYRo69cij_SjXQ4_baEYqDJn7NhgPRWcckjt87DcYV74MkFbtiO9VUuQb59FEi4G50fvhRFT84yM-RnFGYnzuKDFq2oZlJuSVnFCi_fzd9n3kf4fzNqrCwsEeAnzjMkelDaWg_Wvuxc5w9o0PgKGWSS3q0Ut9OB4-nkcwI8H61k07QkV20biAr-WmWVRHXioxRUm0Pi8w6fMBEnyIuGNBkXyHbN4AWMOWATivVN7a__UW7SVQqvlEf7GzEE-lxut4VhCc_M6aWBdftK9okopXex5eWCfK-5QkoHuhrCDs73I0afrfILvNnVGphoMznfvQMwmZF9YCBtc9tNPIbRw6fNj6oKGnlfdynyR6x3DnYy2W_1tIrz13OkdtJsfq4bnzy9dfmWIRmI4FLcjZKWOFBynNaH4bQ.kCQiXbVryg4OZgA17IRVEw")
-        ->setEnviornment("sandbox");
-        return $client;
+      $client = new PaymentClient();
+      $client->setAccessToken("eyJlbmMiOiJBMTI4Q0JDLUhTMjU2IiwiYWxnIjoiZGlyIn0..eWYIgqco8YBHdtixI7XO9A.XWqCxUjTISqQoN1AZpvYPnw5lTsb2OSAGfwGhFeoM0aKmTK56nWqXJwSvkJ_EyrMQD368oeY3jCZaMARRFz-mxW1eEd92gPSGcxHB_bpI4XDOCi_WM3hA_cRpPc3c1l6ENppZcr7mmVw_3-n2TINcZsVuiebQxkvT38_6WCI68SJEHVLCoLvFj8XuN8eVrLe2deMmPrRmXlJHiphXtQsC9iwlsNL09swvz4XONV2661BfmwS1g7_i4YJwk9spdOqlwOy_HkVquogL-_t8Kxuy12HhVsBTJG4D4lu_C6mK6gjW-FYw7f5JFEtp47hHDn1Nipi62xYUmNrDIUnAOvTgAeeuDoEnnDpzl-5uFRh12dujJtGPLOrYvntgVD22wcZpuDnuC9G-vZOQcXzvOY9Cyqk0TEoMrJv30tTXvn-DCg2AFJR2DDLj51TzOsxGKhzTQUnVt3Kv3Mjq0XIG0KLf4A5FlrUKcaJqHeZkD1E0QaSehSYWZb3zV3lb1shv65pP0jzF4hf1PGbkD7Al4o0voy705xMV47IZGxD8g3yZ1raq_6F2pFYqBPNqOvYoONkLBtZvbpdi1TjcEAQ-mkNSa84nPZzl6X6xBE77pLwPUby7nVaYLgy7dUnpnw90kcxH7z0qi9b7TVQariJX2i6rL--ZKtd5Ou3lwFPBJ-1pJEOtXnETbWdO0Oib-XTrYC_-DnW1RE1LcPBAA6qjlR6Fg.5B8JUVTopA1-k-q4FocE5Q")
+             ->setEnviornment("sandbox");
+      return $client;
     }
 
     private function createCardBody()
@@ -116,5 +116,24 @@ final class CardTest extends TestCase
 
         $client->deleteCard($customerId, $id1);
         $client->deleteCard($customerId, $id2);
+    }
+
+    public function testCreateCardToken(): void
+    {
+        $client = $this->createInstance();
+        $card = $this->createCardBody();
+        $response = $client->createToken($card);
+        $value = $response->getBody()->value;
+        $customerId = rand();
+        $response = $client->createCardFromToken($customerId, $value);
+        $this->assertEquals(
+                    $card->expMonth,
+                    $response->getBody()->expMonth
+            );
+
+            $this->assertEquals(
+              $card->name,
+              $response->getBody()->name
+            );
     }
 }

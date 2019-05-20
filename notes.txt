@@ -9,6 +9,7 @@ when you modify the composer.json file.
 ./vendor/bin/phpunit --bootstrap vendor/autoload.php tests/GuzzleClientTest
 ./vendor/bin/phpunit --bootstrap vendor/autoload.php tests/ChargeTest
 ./vendor/bin/phpunit --bootstrap vendor/autoload.php tests/CardTest
+./vendor/bin/phpunit --bootstrap vendor/autoload.php tests/ECheckTest
 ./vendor/bin/phpunit --bootstrap vendor/autoload.php tests/FacadeTest
 
 
