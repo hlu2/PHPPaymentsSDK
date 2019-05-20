@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
+namespace QuickBooksOnline\Tests;
 
 use QuickBooksOnline\Payments\Facade\FacadeConverter;
 

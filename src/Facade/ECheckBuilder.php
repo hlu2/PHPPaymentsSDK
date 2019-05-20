@@ -17,12 +17,12 @@ class ECheckBuilder
     /**
      * Create a debit
      */
-    public static function debit(ECheck $debitBody, string $requestId, $client) : RequestInterface
+    public static function debit(ECheck $debitBody, string $requestId, $context) : RequestInterface
     {
         $request = RequestFactory::createStandardIntuitRequest(RequestType::ECHECK);
         $request->setMethod(RequestInterface::POST)
-              ->setUrl($client->getUrl() . EndpointUrls::ECHECK_URL)
-              ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId))
+              ->setUrl($context->getBaseUrl() . EndpointUrls::ECHECK_URL)
+              ->setHeader($context->getStandardHeaderWithRequestID($requestId))
               ->setBody(FacadeConverter::getJsonFrom($debitBody));
         return $request;
     }
@@ -31,12 +31,37 @@ class ECheckBuilder
     /**
      * Retrieve an echeck
      */
-    public static function retrieveECheck(string $echeckId, string $requestId, $client) : RequestInterface
+    public static function retrieveECheck(string $echeckId, string $requestId, $context) : RequestInterface
     {
         $request = RequestFactory::createStandardIntuitRequest(RequestType::ECHECK);
         $request->setMethod(RequestInterface::GET)
-                  ->setUrl($client->getUrl() . EndpointUrls::ECHECK_URL . "/" . $echeckId)
-                  ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId));
+                  ->setUrl($context->getBaseUrl() . EndpointUrls::ECHECK_URL . "/" . $echeckId)
+                  ->setHeader($context->getStandardHeaderWithRequestID($requestId));
+        return $request;
+    }
+
+    /**
+     * void or refund an echeck
+     */
+    public static function voidOrRefundECheck(ECheck $echeck, string $echeckId, string $requestId, $context) : RequestInterface
+    {
+        $request = RequestFactory::createStandardIntuitRequest(RequestType::ECHECK);
+        $request->setMethod(RequestInterface::POST)
+                  ->setUrl($context->getBaseUrl() . EndpointUrls::ECHECK_URL . "/" . $echeckId . "/refunds")
+                  ->setHeader($context->getStandardHeaderWithRequestID($requestId))
+                  ->setBody(FacadeConverter::getJsonFrom($echeck));
+        return $request;
+    }
+
+    /**
+     * retrieve a Refund
+     */
+    public static function retrieveRefund(string $echeckId, string $refundId, string $requestId, $context) : RequestInterface
+    {
+        $request = RequestFactory::createStandardIntuitRequest(RequestType::ECHECK);
+        $request->setMethod(RequestInterface::GET)
+                  ->setUrl($context->getBaseUrl() . EndpointUrls::ECHECK_URL . "/" . $echeckId . "/refunds" . "/" . $refundId)
+                  ->setHeader($context->getStandardHeaderWithRequestID($requestId));
         return $request;
     }
 }

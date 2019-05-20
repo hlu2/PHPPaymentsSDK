@@ -1,13 +1,23 @@
 <?php
 namespace QuickBooksOnline\Payments;
 
-use QuickBooksOnline\Payments\Facade\{ChargeBuilder, CardBuilder, TokenBuilder, ECheckBuilder};
 use QuickBooksOnline\Payments\Facade\FacadeConverter;
+use QuickBooksOnline\Payments\Facade\ChargeBuilder;
+use QuickBooksOnline\Payments\Facade\CardBuilder;
+use QuickBooksOnline\Payments\Facade\TokenBuilder;
+use QuickBooksOnline\Payments\Facade\ECheckBuilder;
+use QuickBooksOnline\Payments\Facade\BankAccountBuilder;
 use QuickBooksOnline\Payments\HttpClients\core\ClientFactory;
 use QuickBooksOnline\Payments\HttpClients\Response\IntuitResponse;
 use QuickBooksOnline\Payments\HttpClients\Response\ResponseInterface;
 use QuickBooksOnline\Payments\HttpClients\Response\ResponseFactory;
-use QuickBooksOnline\Payments\Module\{Charge, Card, ECheck, Token};
+use QuickBooksOnline\Payments\HttpClients\Request\IntuitRequest;
+use QuickBooksOnline\Payments\HttpClients\Request\RequestInterface;
+use QuickBooksOnline\Payments\Module\BankAccount;
+use QuickBooksOnline\Payments\Module\Charge;
+use QuickBooksOnline\Payments\Module\Card;
+use QuickBooksOnline\Payments\Module\ECheck;
+use QuickBooksOnline\Payments\Module\Token;
 
 class PaymentClient
 {
@@ -35,6 +45,14 @@ class PaymentClient
         $this->context = new ClientContext();
     }
 
+    /**
+     * A generic function to send any request that implements RequestInterface
+     */
+    public function send(RequestInterface $request) : ResponseInterface{
+        $response = $this->httpClient->send($request);
+        FacadeConverter::updateResponseBodyToObj($response);
+        return $response;
+    }
 
     /**
      * Create a Charge
@@ -44,7 +62,7 @@ class PaymentClient
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ChargeBuilder::createChargeRequest($charge, $requestId, $this);
+        $request = ChargeBuilder::createChargeRequest($charge, $requestId, $this->getContext());
         $response = $this->httpClient->send($request);
         FacadeConverter::updateResponseBodyToObj($response);
         return $response;
@@ -58,7 +76,7 @@ class PaymentClient
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ChargeBuilder::createGetChargeRequest($chargeId, $requestId, $this);
+        $request = ChargeBuilder::createGetChargeRequest($chargeId, $requestId, $this->getContext());
         $response = $this->httpClient->send($request);
         FacadeConverter::updateResponseBodyToObj($response);
         return $response;
@@ -72,7 +90,7 @@ class PaymentClient
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ChargeBuilder::createCaptureChargeRequest($charge, $chargeId, $requestId, $this);
+        $request = ChargeBuilder::createCaptureChargeRequest($charge, $chargeId, $requestId, $this->getContext());
         $response = $this->httpClient->send($request);
         FacadeConverter::updateResponseBodyToObj($response);
         return $response;
@@ -86,7 +104,7 @@ class PaymentClient
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ChargeBuilder::createRefundChargeRequest($charge, $chargeId, $requestId, $this);
+        $request = ChargeBuilder::createRefundChargeRequest($charge, $chargeId, $requestId, $this->getContext());
         $response = $this->httpClient->send($request);
         FacadeConverter::updateResponseBodyToObj($response);
         return $response;
@@ -100,7 +118,7 @@ class PaymentClient
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ChargeBuilder::refundBy($chargeId, $refundId, $requestId, $this);
+        $request = ChargeBuilder::refundBy($chargeId, $refundId, $requestId, $this->getContext());
         $response = $this->httpClient->send($request);
         FacadeConverter::updateResponseBodyToObj($response);
         return $response;
@@ -114,7 +132,7 @@ class PaymentClient
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = CardBuilder::createCard($card, $customerID, $requestId, $this);
+        $request = CardBuilder::createCard($card, $customerID, $requestId, $this->getContext());
         $response = $this->httpClient->send($request);
         FacadeConverter::updateResponseBodyToObj($response);
         return $response;
@@ -128,7 +146,7 @@ class PaymentClient
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = CardBuilder::deleteCard($customerID, $cardId, $requestId, $this);
+        $request = CardBuilder::deleteCard($customerID, $cardId, $requestId, $this->getContext());
         $response = $this->httpClient->send($request);
         FacadeConverter::updateResponseBodyToObj($response);
         return $response;
@@ -142,7 +160,7 @@ class PaymentClient
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = CardBuilder::getAllCards($customerID, $requestId, $this);
+        $request = CardBuilder::getAllCards($customerID, $requestId, $this->getContext());
         $response = $this->httpClient->send($request);
         FacadeConverter::updateResponseBodyToObj($response);
         return $response;
@@ -157,7 +175,7 @@ class PaymentClient
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = CardBuilder::createCardFromToken($customerID, $tokenValue, $requestId, $this);
+        $request = CardBuilder::createCardFromToken($customerID, $tokenValue, $requestId, $this->getContext());
         $response = $this->httpClient->send($request);
         FacadeConverter::updateResponseBodyToObj($response);
         return $response;
@@ -171,7 +189,7 @@ class PaymentClient
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = TokenBuilder::createToken($body, $isIE, $requestId, $this);
+        $request = TokenBuilder::createToken($body, $isIE, $requestId, $this->getContext());
         $response = $this->httpClient->send($request);
         FacadeConverter::updateResponseBodyToObj($response);
         return $response;
@@ -185,7 +203,7 @@ class PaymentClient
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ECheckBuilder::debit($debitBody, $requestId, $this);
+        $request = ECheckBuilder::debit($debitBody, $requestId, $this->getContext());
         $response = $this->httpClient->send($request);
         FacadeConverter::updateResponseBodyToObj($response);
         return $response;
@@ -199,25 +217,111 @@ class PaymentClient
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ECheckBuilder::retrieveECheck($echeckId, $requestId, $this);
+        $request = ECheckBuilder::retrieveECheck($echeckId, $requestId, $this->getContext());
         $response = $this->httpClient->send($request);
         FacadeConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
     /**
-    * Retrieve a Refund
+    * Void or Refund an Echeck
     */
-    public function retrieveECheck(string $echeckId, string $requestId = ""): ResponseInterface
+    public function voidOrRefundEcheck(ECheck $echeck, string $echeckId, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ECheckBuilder::retrieveECheck($echeckId, $requestId, $this);
+        $request = ECheckBuilder::voidOrRefundEcheck($echeck, $echeckId, $requestId, $this->getContext());
         $response = $this->httpClient->send($request);
         FacadeConverter::updateResponseBodyToObj($response);
         return $response;
     }
+
+    /**
+    * Retrieve a refund
+    */
+    public function retrieveRefund(string $echeckId, string $refundId, string $requestId = ""): ResponseInterface
+    {
+        if (empty($requestId)) {
+            $requestId = ClientContext::generateRequestID();
+        }
+        $request = ECheckBuilder::retrieveRefund($echeckId, $refundId, $requestId, $this->getContext());
+        $response = $this->httpClient->send($request);
+        FacadeConverter::updateResponseBodyToObj($response);
+        return $response;
+    }
+
+    /**
+    * Create a bank account
+    */
+    public function createBankAccount(BankAccount $account, $customerID, string $requestId = ""): ResponseInterface
+    {
+        if (empty($requestId)) {
+            $requestId = ClientContext::generateRequestID();
+        }
+        $request = BankAccountBuilder::createBankAccount($account, $customerID, $requestId, $this->getContext());
+        $response = $this->httpClient->send($request);
+        FacadeConverter::updateResponseBodyToObj($response);
+        return $response;
+    }
+
+    /**
+    * Create a bank account from token
+    */
+    public function createBankAccountFromToken($customerID, string $tokenValue, string $requestId = ""): ResponseInterface
+    {
+        if (empty($requestId)) {
+            $requestId = ClientContext::generateRequestID();
+        }
+        $request = BankAccountBuilder::createBankAccountFromToken($customerID, $tokenValue, $requestId, $this->getContext());
+        $response = $this->httpClient->send($request);
+        FacadeConverter::updateResponseBodyToObj($response);
+        return $response;
+    }
+
+    /**
+    * Delete a bank account
+    */
+    public function deleteBankAccount($customerID, string $bankAccountId, string $requestId = ""): ResponseInterface
+    {
+        if (empty($requestId)) {
+            $requestId = ClientContext::generateRequestID();
+        }
+        $request = BankAccountBuilder::deleteBankAccountFor($customerID, $bankAccountId, $requestId, $this->getContext());
+        $response = $this->httpClient->send($request);
+        FacadeConverter::updateResponseBodyToObj($response);
+        return $response;
+    }
+
+    /**
+    * Get all bank account
+    */
+    public function getAllBankAccount($customerID, string $requestId = ""): ResponseInterface
+    {
+        if (empty($requestId)) {
+            $requestId = ClientContext::generateRequestID();
+        }
+        $request = BankAccountBuilder::getAllbankAccountsFor($customerID, $requestId, $this->getContext());
+        $response = $this->httpClient->send($request);
+        FacadeConverter::updateResponseBodyToObj($response);
+        return $response;
+    }
+
+
+    /**
+    * Get all bank account
+    */
+    public function getABankAccount($customerID, string $bankAccountId, string $requestId = ""): ResponseInterface
+    {
+        if (empty($requestId)) {
+            $requestId = ClientContext::generateRequestID();
+        }
+        $request = BankAccountBuilder::getAbankAccountFor($customerID, $bankAccountId, $requestId, $this->getContext());
+        $response = $this->httpClient->send($request);
+        FacadeConverter::updateResponseBodyToObj($response);
+        return $response;
+    }
+
 
 
     public function getUrl()
@@ -295,7 +399,7 @@ class PaymentClient
      */
     public function setEnviornment($environment)
     {
-      $this->context->setEnviornment($environment);
+        $this->context->setEnviornment($environment);
     }
 
     /**
@@ -308,10 +412,11 @@ class PaymentClient
         return $this->interceptors;
     }
 
-    public function getInterceptor(string $interceptorName){
-        if(array_key_exists($interceptorName, $this->interceptors)){
+    public function getInterceptor(string $interceptorName)
+    {
+        if (array_key_exists($interceptorName, $this->interceptors)) {
             return $this->interceptors[$interceptorName];
-        }else{
+        } else {
             return null;
         }
     }
@@ -319,16 +424,16 @@ class PaymentClient
     public function addInterceptor($name, $interceptor)
     {
         $interceptor = $this->getInterceptor($name);
-        if(!isset($interceptor)){
+        if (!isset($interceptor)) {
             $this->interceptors[$name] = $interceptor;
-        }else{
-          throw new \RuntimeException("Interceptor with name: " . $name . " already exists.");
+        } else {
+            throw new \RuntimeException("Interceptor with name: " . $name . " already exists.");
         }
         return $this;
     }
 
-    public function removeInterceptor(){
-
+    public function removeInterceptor()
+    {
     }
 
     /**
@@ -402,5 +507,4 @@ class PaymentClient
 
         return $this;
     }
-
 }

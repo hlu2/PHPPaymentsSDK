@@ -14,6 +14,9 @@ class BankAccount extends Entity{
   public $country;
   public $bankCode;
   public $default;
+  public $entityVersion;
+  public $entityId;
+  public $entityType;
 
   public function __construct(array $array = array()){
     foreach($array as $name => $value){

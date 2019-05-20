@@ -8,4 +8,5 @@ Class RequestType{
    const CARD = "Card";
    const TOKEN = "Token";
    const ECHECK = "ECheck";
+   const BANKACCOUNT = "BankAccount";
 }

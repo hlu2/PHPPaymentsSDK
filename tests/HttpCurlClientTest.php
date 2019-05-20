@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace QuickBooksOnline\Payments\tests;
+namespace QuickBooksOnline\Tests;
 
 use PHPUnit\Framework\TestCase;
 use QuickBooksOnline\Payments\OAuth\{DiscoverySandboxURLs, DiscoveryURLs, OAuth2Authenticator, OAuth1Encrypter};

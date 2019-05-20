@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace QuickBooksOnline\Payments\tests;
+namespace QuickBooksOnline\Tests;
 
 use PHPUnit\Framework\TestCase;
 use QuickBooksOnline\Payments\Facade\ChargeBuilder;
@@ -11,10 +11,7 @@ final class ChargeTest extends TestCase
 {
     private function createInstance()
     {
-        $client = new PaymentClient();
-        $client->setAccessToken("eyJlbmMiOiJBMTI4Q0JDLUhTMjU2IiwiYWxnIjoiZGlyIn0..eWYIgqco8YBHdtixI7XO9A.XWqCxUjTISqQoN1AZpvYPnw5lTsb2OSAGfwGhFeoM0aKmTK56nWqXJwSvkJ_EyrMQD368oeY3jCZaMARRFz-mxW1eEd92gPSGcxHB_bpI4XDOCi_WM3hA_cRpPc3c1l6ENppZcr7mmVw_3-n2TINcZsVuiebQxkvT38_6WCI68SJEHVLCoLvFj8XuN8eVrLe2deMmPrRmXlJHiphXtQsC9iwlsNL09swvz4XONV2661BfmwS1g7_i4YJwk9spdOqlwOy_HkVquogL-_t8Kxuy12HhVsBTJG4D4lu_C6mK6gjW-FYw7f5JFEtp47hHDn1Nipi62xYUmNrDIUnAOvTgAeeuDoEnnDpzl-5uFRh12dujJtGPLOrYvntgVD22wcZpuDnuC9G-vZOQcXzvOY9Cyqk0TEoMrJv30tTXvn-DCg2AFJR2DDLj51TzOsxGKhzTQUnVt3Kv3Mjq0XIG0KLf4A5FlrUKcaJqHeZkD1E0QaSehSYWZb3zV3lb1shv65pP0jzF4hf1PGbkD7Al4o0voy705xMV47IZGxD8g3yZ1raq_6F2pFYqBPNqOvYoONkLBtZvbpdi1TjcEAQ-mkNSa84nPZzl6X6xBE77pLwPUby7nVaYLgy7dUnpnw90kcxH7z0qi9b7TVQariJX2i6rL--ZKtd5Ou3lwFPBJ-1pJEOtXnETbWdO0Oib-XTrYC_-DnW1RE1LcPBAA6qjlR6Fg.5B8JUVTopA1-k-q4FocE5Q")
-               ->setEnviornment("sandbox");
-        return $client;
+        return TestClientCreator::createInstance();
     }
 
     private function createChargeBody()
@@ -96,10 +93,11 @@ final class ChargeTest extends TestCase
         return $chargeBody;
     }
 
-    public function testRequestId() : void {
-       $client = $this->createInstance();
-       $chargeBody = $this->createChargeBody();
-       $requestId = rand() . "abd";
+    public function testRequestId() : void
+    {
+        $client = $this->createInstance();
+        $chargeBody = $this->createChargeBody();
+        $requestId = rand() . "abd";
         $response = $client->charge($chargeBody, $requestId);
         //var_dump($response);
         $this->assertEquals(
@@ -107,8 +105,8 @@ final class ChargeTest extends TestCase
             $requestId
         );
 
-          $response = $client->charge($chargeBody);
-          $this->assertEquals(
+        $response = $client->charge($chargeBody);
+        $this->assertEquals(
               strlen($response->getAssociatedRequest()->getHeader()['Request-Id']),
               20
           );
@@ -205,6 +203,4 @@ final class ChargeTest extends TestCase
             $chargeId
          );
     }
-
-
 }

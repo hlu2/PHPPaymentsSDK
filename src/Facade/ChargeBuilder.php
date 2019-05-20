@@ -17,12 +17,12 @@ class ChargeBuilder
     /**
      * Create a Charge
      */
-    public static function createChargeRequest(Charge $charge, string $requestId, $client) : RequestInterface
+    public static function createChargeRequest(Charge $charge, string $requestId, $context) : RequestInterface
     {
         $request = RequestFactory::createStandardIntuitRequest(RequestType::CHARGE);
         $request->setMethod(RequestInterface::POST)
-              ->setUrl($client->getUrl() . EndpointUrls::CHARGE_URL)
-              ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId))
+              ->setUrl($context->getBaseUrl() . EndpointUrls::CHARGE_URL)
+              ->setHeader($context->getStandardHeaderWithRequestID($requestId))
               ->setBody(FacadeConverter::getJsonFrom($charge));
         return $request;
     }
@@ -30,24 +30,24 @@ class ChargeBuilder
     /**
      * Retrieve a Charge by Id
      */
-    public static function createGetChargeRequest(string $chargeId, string $requestId, $client) : RequestInterface
+    public static function createGetChargeRequest(string $chargeId, string $requestId, $context) : RequestInterface
     {
         $request = RequestFactory::createStandardIntuitRequest(RequestType::CHARGE);
         $request->setMethod(RequestInterface::GET)
-              ->setUrl($client->getUrl() . EndpointUrls::CHARGE_URL . "/" . $chargeId)
-              ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId));
+              ->setUrl($context->getBaseUrl() . EndpointUrls::CHARGE_URL . "/" . $chargeId)
+              ->setHeader($context->getStandardHeaderWithRequestID($requestId));
         return $request;
     }
 
     /**
      * Capture a Charge by Id
      */
-    public static function createCaptureChargeRequest(Charge $charge, string $chargeId, string $requestId, $client) : RequestInterface
+    public static function createCaptureChargeRequest(Charge $charge, string $chargeId, string $requestId, $context) : RequestInterface
     {
         $request = RequestFactory::createStandardIntuitRequest(RequestType::CHARGE);
         $request->setMethod(RequestInterface::POST)
-                  ->setUrl($client->getUrl() . EndpointUrls::CHARGE_URL . "/" . $chargeId . "/capture")
-                  ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId))
+                  ->setUrl($context->getBaseUrl() . EndpointUrls::CHARGE_URL . "/" . $chargeId . "/capture")
+                  ->setHeader($context->getStandardHeaderWithRequestID($requestId))
                   ->setBody(FacadeConverter::getJsonFrom($charge));
         return $request;
     }
@@ -55,12 +55,12 @@ class ChargeBuilder
     /**
       * Refund a Charge
       */
-    public static function createRefundChargeRequest(Charge $charge, string $chargeId, string $requestId, $client) : RequestInterface
+    public static function createRefundChargeRequest(Charge $charge, string $chargeId, string $requestId, $context) : RequestInterface
     {
         $request = RequestFactory::createStandardIntuitRequest(RequestType::CHARGE);
         $request->setMethod(RequestInterface::POST)
-                  ->setUrl($client->getUrl() . EndpointUrls::CHARGE_URL . "/" . $chargeId . "/refunds")
-                  ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId))
+                  ->setUrl($context->getBaseUrl() . EndpointUrls::CHARGE_URL . "/" . $chargeId . "/refunds")
+                  ->setHeader($context->getStandardHeaderWithRequestID($requestId))
                   ->setBody(FacadeConverter::getJsonFrom($charge));
         return $request;
     }
@@ -68,12 +68,12 @@ class ChargeBuilder
     /**
      * Get a Refund By ID
      */
-    public static function refundBy(string $chargeId, string $refundId, string $requestId, $client) : RequestInterface
+    public static function refundBy(string $chargeId, string $refundId, string $requestId, $context) : RequestInterface
     {
         $request = RequestFactory::createStandardIntuitRequest(RequestType::CHARGE);
         $request->setMethod(RequestInterface::GET)
-                ->setUrl($client->getUrl() . EndpointUrls::CHARGE_URL . "/" . $chargeId . "/refunds" . "/" . $refundId)
-                ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId));
+                ->setUrl($context->getBaseUrl() . EndpointUrls::CHARGE_URL . "/" . $chargeId . "/refunds" . "/" . $refundId)
+                ->setHeader($context->getStandardHeaderWithRequestID($requestId));
         return $request;
     }
 }

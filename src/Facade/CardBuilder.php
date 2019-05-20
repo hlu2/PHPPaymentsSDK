@@ -20,12 +20,12 @@ class CardBuilder
   /**
    * Create a Card
    */
-  public static function createCard(Card $card, $customerID, string $requestId, $client) : RequestInterface
+  public static function createCard(Card $card, $customerID, string $requestId, $context) : RequestInterface
   {
       $request = RequestFactory::createStandardIntuitRequest(RequestType::CARD);
       $request->setMethod(RequestInterface::POST)
-            ->setUrl($client->getUrl() . EndpointUrls::CUSTOMER_URL . "/" . $customerID . "/cards")
-            ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId))
+            ->setUrl($context->getBaseUrl() . EndpointUrls::CUSTOMER_URL . "/" . $customerID . "/cards")
+            ->setHeader($context->getStandardHeaderWithRequestID($requestId))
             ->setBody(FacadeConverter::getJsonFrom($card));
       return $request;
   }
@@ -33,46 +33,42 @@ class CardBuilder
   /**
    * Delete a Customer's Card
    */
-  public static function deleteCard($customerID, string $cardId, string $requestId, $client): RequestInterface
+  public static function deleteCard($customerID, string $cardId, string $requestId, $context): RequestInterface
   {
       $request = RequestFactory::createStandardIntuitRequest(RequestType::CARD);
       $request->setMethod(RequestInterface::DELETE)
-            ->setUrl($client->getUrl() . EndpointUrls::CUSTOMER_URL . "/" . $customerID . "/cards" . "/" .$cardId)
-            ->setHeader($client->getContext()->getStandardHeaderWithRequestIDForDelete($requestId));
+            ->setUrl($context->getBaseUrl() . EndpointUrls::CUSTOMER_URL . "/" . $customerID . "/cards" . "/" .$cardId)
+            ->setHeader($context->getStandardHeaderWithRequestIDForDelete($requestId));
       return $request;
   }
 
   /**
    * Get all cards associated with a Customer
    */
-  public static function getAllCards($customerID, string $requestId, $client): RequestInterface
+  public static function getAllCards($customerID, string $requestId, $context): RequestInterface
   {
       $request = RequestFactory::createStandardIntuitRequest(RequestType::CARD);
       $request->setMethod(RequestInterface::GET)
-            ->setUrl($client->getUrl() . EndpointUrls::CUSTOMER_URL . "/" . $customerID . "/cards")
-            ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId));
+            ->setUrl($context->getBaseUrl() . EndpointUrls::CUSTOMER_URL . "/" . $customerID . "/cards")
+            ->setHeader($context->getStandardHeaderWithRequestID($requestId));
       return $request;
   }
 
   /**
    * Create a Card from Token
    */
-  public static function createCardFromToken($customerID, string $tokenValue, $requestId, $client): RequestInterface
+  public static function createCardFromToken($customerID, string $tokenValue, $requestId, $context): RequestInterface
   {
-      $token = CardBuilder::createTokenObjFromValue($tokenValue);
+      $token = FacadeConverter::createTokenObjFromValue($tokenValue);
       $request = RequestFactory::createStandardIntuitRequest(RequestType::CARD);
       $request->setMethod(RequestInterface::POST)
-            ->setUrl($client->getUrl() . EndpointUrls::CUSTOMER_URL . "/" . $customerID . "/cards" . "/createFromToken")
-            ->setHeader($client->getContext()->getStandardHeaderWithRequestID($requestId))
+            ->setUrl($context->getBaseUrl() . EndpointUrls::CUSTOMER_URL . "/" . $customerID . "/cards" . "/createFromToken")
+            ->setHeader($context->getStandardHeaderWithRequestID($requestId))
             ->setBody(FacadeConverter::getJsonFrom($token));
       return $request;
   }
 
-  public static function createTokenObjFromValue($val) : Token {
-      $token = new Token();
-      $token->value = $val;
-      return $token;
-  }
+
 
 
 }

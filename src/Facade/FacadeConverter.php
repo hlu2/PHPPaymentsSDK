@@ -3,6 +3,8 @@
 namespace QuickBooksOnline\Payments\Facade;
 
 use QuickBooksOnline\Payments\Module\ModuleConstants;
+use QuickBooksOnline\Payments\Module\Token;
+
 
 class FacadeConverter{
 
@@ -69,6 +71,12 @@ class FacadeConverter{
             $objBody = FacadeConverter::objectFrom($response->getBody(), $response->getAssociatedRequest()->getRequestType());
             $response->setBody($objBody);
         }
+    }
+
+    public static function createTokenObjFromValue($val) : Token {
+        $token = new Token();
+        $token->value = $val;
+        return $token;
     }
 
 

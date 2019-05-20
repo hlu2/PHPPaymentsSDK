@@ -30,6 +30,7 @@ class ComposerStaticInitcf86c1f51b465f1f0a1f0c8bc95d14c8
         ),
         'Q' => 
         array (
+            'QuickBooksOnline\\Tests\\' => 23,
             'QuickBooksOnline\\Payments\\' => 26,
         ),
         'P' => 
@@ -63,6 +64,10 @@ class ComposerStaticInitcf86c1f51b465f1f0a1f0c8bc95d14c8
         'Symfony\\Polyfill\\Ctype\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-ctype',
+        ),
+        'QuickBooksOnline\\Tests\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/tests',
         ),
         'QuickBooksOnline\\Payments\\' => 
         array (
