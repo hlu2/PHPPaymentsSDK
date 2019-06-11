@@ -98,7 +98,7 @@ class GuzzleClient implements HttpClientInterface
    /**
     * Guzzle Client do not do anything to enable debug.
     */
-   public function enableDebug(){}
-   public function getDebugInfo() {};
+   public function enableDebug() {}
+   public function getDebugInfo() {}
 
 }

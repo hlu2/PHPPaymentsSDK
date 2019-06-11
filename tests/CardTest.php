@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace QuickBooksOnline\Tests;
 
 use PHPUnit\Framework\TestCase;
-use QuickBooksOnline\Payments\Facade\CardBuilder;
+use QuickBooksOnline\Payments\Operations\CardOperations;
 use QuickBooksOnline\Payments\PaymentClient;
 
 final class CardTest extends TestCase
@@ -16,7 +16,7 @@ final class CardTest extends TestCase
 
     private function createCardBody()
     {
-        $cardBody = CardBuilder::buildFrom([
+        $cardBody = CardOperations::buildFrom([
         "expMonth"=> "12",
             "address"=> [
               "postalCode"=> "44112",
@@ -34,7 +34,7 @@ final class CardTest extends TestCase
 
     private function createCardBody2()
     {
-        $cardBody = CardBuilder::buildFrom([
+        $cardBody = CardOperations::buildFrom([
         "expMonth"=> "11",
             "address"=> [
               "postalCode"=> "44112",

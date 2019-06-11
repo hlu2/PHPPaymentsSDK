@@ -1,13 +1,13 @@
 <?php
 namespace QuickBooksOnline\Payments\HttpClients\core;
 
-
 use QuickBooksOnline\Payments\HttpClients\Request\RequestInterface;
-use QuickBooksOnline\Payments\HttpClients\Response\{IntuitResponse, ResponseInterface, ResponseFactory};
+use QuickBooksOnline\Payments\HttpClients\Response\IntuitResponse;
+use QuickBooksOnline\Payments\HttpClients\Response\ResponseInterface;
+use QuickBooksOnline\Payments\HttpClients\Response\ResponseFactory;
 
-
-class HttpCurlClient implements HttpClientInterface {
-
+class HttpCurlClient implements HttpClientInterface
+{
     private $baseCurl;
     //Default 10 seconds
     private $connectionTimeOut;
@@ -24,24 +24,28 @@ class HttpCurlClient implements HttpClientInterface {
      */
     private $lastRequest;
 
-    public function __construct(){
+    public function __construct()
+    {
         $this->baseCurl = new BaseCurl();
         $connectionTimeOut = 10;
         $requestTimeOut = 100;
         $isVerifySSL = true;
     }
 
-    public function setTimeOut(int $userSetConnectionTimeout, int $userSetRequestTimeout) : void{
+    public function setTimeOut(int $userSetConnectionTimeout, int $userSetRequestTimeout) : void
+    {
         $this->connectionTimeOut = $userSetConnectionTimeout;
         $this->requestTimeOut = $userSetRequestTimeout;
     }
 
-    public function setVerifySSL(bool $isBuiltInSSLVerifierUsed) : void {
+    public function setVerifySSL(bool $isBuiltInSSLVerifierUsed) : void
+    {
         $this->isVerifySSL = $isBuiltInSSLVerifierUsed;
     }
 
-    public function send(RequestInterface $request) : ResponseInterface {
-        if(!isset($request)){
+    public function send(RequestInterface $request) : ResponseInterface
+    {
+        if (!isset($request)) {
             throw new \RuntimeException("Cannot send an empty request.");
         }
         $this->lastRequest = $request;
@@ -49,108 +53,128 @@ class HttpCurlClient implements HttpClientInterface {
         $curlResponse = $this->execute();
         $this->handleCurlErrors();
         $response = $this->parseCurlResponse($curlResponse, $request);
-        if($this->enableDebug){
-           $this->information = curl_getinfo($this->baseCurl->getCurl());
+        if ($this->enableDebug) {
+            $this->information = curl_getinfo($this->baseCurl->getCurl());
         }
         $this->closeConnection();
         return $response;
     }
 
-    private function execute(){
-      return $this->baseCurl->execute();
+    private function execute()
+    {
+        return $this->baseCurl->execute();
     }
 
-    private function handleCurlErrors() {
-      if($this->baseCurl->errno() || $this->baseCurl->error()){
-        $errorMsg = $this->baseCurl->error();
-        $errorNumber = $this->baseCurl->errno();
-        throw new \RuntimeException("cURL error during making API call. cURL Error Number:[" . $errorNumber . "] with error:[" . $errorMsg . "]");
-      }
+    private function handleCurlErrors()
+    {
+        if ($this->baseCurl->errno() || $this->baseCurl->error()) {
+            $errorMsg = $this->baseCurl->error();
+            $errorNumber = $this->baseCurl->errno();
+            throw new \RuntimeException("cURL error during making API call. cURL Error Number:[" . $errorNumber . "] with error:[" . $errorMsg . "]");
+        }
     }
 
-    private function parseCurlResponse($curlResponse, $request) : ResponseInterface {
-      $headerSize = $this->baseCurl->getInfo(CURLINFO_HEADER_SIZE);
-      $rawHeaders = mb_substr($curlResponse, 0, $headerSize);
-      $rawBody = mb_substr($curlResponse, $headerSize);
-      $httpStatusCode = $this->baseCurl->getInfo(CURLINFO_HTTP_CODE);
+    private function parseCurlResponse($curlResponse, $request) : ResponseInterface
+    {
+        $headerSize = $this->baseCurl->getInfo(CURLINFO_HEADER_SIZE);
+        $rawHeaders = mb_substr($curlResponse, 0, $headerSize);
+        $rawBody = mb_substr($curlResponse, $headerSize);
+        $httpStatusCode = $this->baseCurl->getInfo(CURLINFO_HTTP_CODE);
 
-      return ResponseFactory::createStandardIntuitResponse($httpStatusCode, $rawHeaders, $rawBody, $request);
+        return ResponseFactory::createStandardIntuitResponse($httpStatusCode, $rawHeaders, $rawBody, $request);
     }
 
     /**
      * close the connection of current http client
      */
-    private function closeConnection(){
+    private function closeConnection()
+    {
         $this->baseCurl->close();
     }
 
 
-    public function getLastSentRequest() : RequestInterface {
-         return $this->lastRequest;
+    public function getLastSentRequest() : RequestInterface
+    {
+        return $this->lastRequest;
     }
 
     /**
      * The body would need to be in the correct format. It would need to match the header.
      *
      */
-    private function prepare(RequestInterface $request) : void {
+    private function prepare(RequestInterface $request) : void
+    {
         $this->intializeCurl();
-        if($this->enableDebug){
-           $this->enableheaderOut();
+        if ($this->enableDebug) {
+            $this->enableheaderOut();
         }
         $this->baseCurl->setHeader($request->getHeader());
         $this->baseCurl->setUrl($request->getUrl());
-        if(strcmp($request->getMethod(), RequestInterface::POST) === 0){ $this->setPostBodyAndMethod($request);}
-        else{ $this->baseCurl->setupOption(CURLOPT_CUSTOMREQUEST, $request->getMethod()); }
-        if($this->isVerifySSL){
-           $this->setSSLConfig();
-        }else{
-           $this->acceptAll();
+        if (strcmp($request->getMethod(), RequestInterface::POST) === 0) {
+            $this->setPostBodyAndMethod($request);
+        } else {
+            $this->baseCurl->setupOption(CURLOPT_CUSTOMREQUEST, $request->getMethod());
+        }
+        if ($this->isVerifySSL) {
+            $this->setSSLConfig();
+        } else {
+            $this->acceptAll();
         }
         $this->updateCurlSettings();
     }
 
-    private function enableheaderOut(){
+    private function enableheaderOut()
+    {
         $this->baseCurl->setupOption(CURLINFO_HEADER_OUT, true);
     }
 
-    private function intializeCurl(){
-      if($this->baseCurl->isCurlSet()){ return; }
-      else {$this->baseCurl->init();}
+    private function intializeCurl()
+    {
+        if ($this->baseCurl->isCurlSet()) {
+            return;
+        } else {
+            $this->baseCurl->init();
+        }
     }
 
-    private function setPostBodyAndMethod(RequestInterface $request){
-       $this->baseCurl->setupOption(CURLOPT_POST, true);
-       $this->baseCurl->setBody($request->getBody());
+    private function setPostBodyAndMethod(RequestInterface $request)
+    {
+        $this->baseCurl->setupOption(CURLOPT_POST, true);
+        $this->baseCurl->setBody($request->getBody());
     }
 
-    private function setSSLConfig(){
+    private function setSSLConfig()
+    {
         $tlsVersion = $this->baseCurl->versionOfTLS();
         $versions = ['TLS 1.2', 'TLS 1.3'];
-        if(!in_array($tlsVersion, $versions)){
-          throw new \RuntimeException("Error. Checking TLS 1.2/1.3 version failed. Please make sure your PHP cURL supports TSL 1.2/1.3");
+        if (!in_array($tlsVersion, $versions)) {
+            throw new \RuntimeException("Error. Checking TLS 1.2/1.3 version failed. Please make sure your PHP cURL supports TSL 1.2/1.3");
         }
         $this->baseCurl->setupOption(CURLOPT_SSL_VERIFYPEER, true);
         $this->baseCurl->setupOption(CURLOPT_SSL_VERIFYHOST, 2);
         $this->baseCurl->setupOption(CURLOPT_CAINFO, CoreConstants::getCertPath());
     }
 
-    private function acceptAll(){
+    private function acceptAll()
+    {
         $this->baseCurl->setupOption(CURLOPT_SSL_VERIFYPEER, false);
     }
 
-    private function updateCurlSettings(){
+    private function updateCurlSettings()
+    {
         $this->baseCurl->setupOption(CURLOPT_CONNECTTIMEOUT, $this->connectionTimeOut);
         $this->baseCurl->setupOption(CURLOPT_TIMEOUT, $this->requestTimeOut);
         $this->baseCurl->setupOption(CURLOPT_RETURNTRANSFER, true);
         $this->baseCurl->setupOption(CURLOPT_HEADER, true);
     }
 
-    public function enableDebug(){
-          $this->enableDebug = true;
+    public function enableDebug()
+    {
+        $this->enableDebug = true;
     }
 
-    public function getDebugInfo(){
-          return $this->information;
+    public function getDebugInfo()
+    {
+        return $this->information;
     }
 }

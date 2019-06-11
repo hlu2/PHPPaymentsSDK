@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace QuickBooksOnline\Tests;
 
 use PHPUnit\Framework\TestCase;
-use QuickBooksOnline\Payments\Facade\BankAccountBuilder;
+use QuickBooksOnline\Payments\Operations\BankAccountOperations;
 use QuickBooksOnline\Payments\PaymentClient;
 
 final class CardTest extends TestCase
@@ -16,7 +16,7 @@ final class CardTest extends TestCase
 
   private function createBankBody()
   {
-      $cardBody = BankAccountBuilder::buildFrom([
+      $cardBody = BankAccountOperations::buildFrom([
       "phone" => "6047296480",
       "routingNumber" => "322079353",
       "name"=> "My Checking",
@@ -102,14 +102,14 @@ final class CardTest extends TestCase
       );
   }
 
-  public function testgetABankaccounts(): void
+  public function testgetBankAccounts(): void
   {
     $client = $this->createInstance();
     $bank = $this->createBankBody();
     $clientId = rand();
     $response = $client->createBankAccount($bank, $clientId);
     $responseBankId = $response->getBody()->id;
-    $response = $client->getABankAccount($clientId, $responseBankId);
+    $response = $client->getBankAccount($clientId, $responseBankId);
 
     $this->assertEquals(
         $responseBankId,

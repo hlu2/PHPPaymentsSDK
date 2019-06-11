@@ -2,25 +2,24 @@
 
 namespace QuickBooksOnline\Payments\OAuth;
 
+class DiscoveryURLs
+{
+    private $issuer_url;
+    private $authorization_endpoint_url;
+    private $token_endpoint_url;
+    private $userinfo_endpoint_url;
+    private $revocation_endpoint_url;
+    private $migration_endpoint_url;
 
-class DiscoveryURLs{
-
-  private $issuer_url;
-  private $authorization_endpoint_url;
-  private $token_endpoint_url;
-  private $userinfo_endpoint_url;
-  private $revocation_endpoint_url;
-  private $migration_endpoint_url;
-
-  public function __construct()
-  {
-      $this->setIssuerUrl("https://oauth.platform.intuit.com/op/v1");
-      $this->setAuthorizationEndpointUrl("https://appcenter.intuit.com/connect/oauth2");
-      $this->setTokenEndpointUrl("https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer");
-      $this->setUserinfoEndpointUrl("https://accounts.platform.intuit.com/v1/openid_connect/userinfo");
-      $this->setRevocationEndpointUrl("https://developer.api.intuit.com/v2/oauth2/tokens/revoke");
-      $this->setMigrationEndpointUrl("https://developer.api.intuit.com/v2/oauth2/tokens/migrate");
-  }
+    public function __construct()
+    {
+        $this->setIssuerUrl("https://oauth.platform.intuit.com/op/v1");
+        $this->setAuthorizationEndpointUrl("https://appcenter.intuit.com/connect/oauth2");
+        $this->setTokenEndpointUrl("https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer");
+        $this->setUserinfoEndpointUrl("https://accounts.platform.intuit.com/v1/openid_connect/userinfo");
+        $this->setRevocationEndpointUrl("https://developer.api.intuit.com/v2/oauth2/tokens/revoke");
+        $this->setMigrationEndpointUrl("https://developer.api.intuit.com/v2/oauth2/tokens/migrate");
+    }
 
     /**
      * Get the value of Issuer Url
@@ -166,5 +165,4 @@ class DiscoveryURLs{
 
         return $this;
     }
-
 }

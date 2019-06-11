@@ -1,23 +1,24 @@
 <?php
 namespace QuickBooksOnline\Payments;
 
-use QuickBooksOnline\Payments\Facade\FacadeConverter;
-use QuickBooksOnline\Payments\Facade\ChargeBuilder;
-use QuickBooksOnline\Payments\Facade\CardBuilder;
-use QuickBooksOnline\Payments\Facade\TokenBuilder;
-use QuickBooksOnline\Payments\Facade\ECheckBuilder;
-use QuickBooksOnline\Payments\Facade\BankAccountBuilder;
+use QuickBooksOnline\Payments\Operations\OperationsConverter;
+use QuickBooksOnline\Payments\Operations\ChargeOperations;
+use QuickBooksOnline\Payments\Operations\CardOperations;
+use QuickBooksOnline\Payments\Operations\TokenOperations;
+use QuickBooksOnline\Payments\Operations\ECheckOperations;
+use QuickBooksOnline\Payments\Operations\BankAccountOperations;
 use QuickBooksOnline\Payments\HttpClients\core\ClientFactory;
 use QuickBooksOnline\Payments\HttpClients\Response\IntuitResponse;
 use QuickBooksOnline\Payments\HttpClients\Response\ResponseInterface;
 use QuickBooksOnline\Payments\HttpClients\Response\ResponseFactory;
 use QuickBooksOnline\Payments\HttpClients\Request\IntuitRequest;
 use QuickBooksOnline\Payments\HttpClients\Request\RequestInterface;
-use QuickBooksOnline\Payments\Module\BankAccount;
-use QuickBooksOnline\Payments\Module\Charge;
-use QuickBooksOnline\Payments\Module\Card;
-use QuickBooksOnline\Payments\Module\ECheck;
-use QuickBooksOnline\Payments\Module\Token;
+use QuickBooksOnline\Payments\Modules\BankAccount;
+use QuickBooksOnline\Payments\Modules\Charge;
+use QuickBooksOnline\Payments\Modules\Card;
+use QuickBooksOnline\Payments\Modules\ECheck;
+use QuickBooksOnline\Payments\Modules\Token;
+use QuickBooksOnline\Payments\Interceptors\InterceptorInterface;
 
 class PaymentClient
 {
@@ -28,14 +29,19 @@ class PaymentClient
     private $context;
 
     /**
-     * A list of interceptors to be used in the client
+     * A list of interceptors to be used in the client AFTER the request has been sent.
+     * The $afterRequestinterceptors will not m
      */
-    private $interceptors = array();
+    private $afterRequestinterceptors;
 
-
+    /**
+     * For OAuth 2.0 protocol related operations
+     */
     private $oauth2Authenticator;
 
-
+    /**
+     * The client that sends the request
+     */
     private $httpClient;
 
 
@@ -43,286 +49,324 @@ class PaymentClient
     {
         $this->httpClient = ClientFactory::buildCurlClient();
         $this->context = new ClientContext();
+        $this->interceptors = array();
     }
 
     /**
      * A generic function to send any request that implements RequestInterface
+     * @param RequestInterface $request The request to be sent
+     * @param InterceptorInterface $interceptor for this request/response. Optional.
      */
-    public function send(RequestInterface $request) : ResponseInterface{
-        $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
-        return $response;
+    public function send(RequestInterface $request, InterceptorInterface $interceptor = null) : ResponseInterface
+    {
+        if (isset($interceptor)) {
+            $interceptor->before($request, $this);
+            $response = $this->httpClient->send($request);
+            $interceptor->after($response, $this);
+            $interceptor->intercept($request, $response, $this);
+            OperationsConverter::updateResponseBodyToObj($response);
+            return $response;
+        } else {
+            $response = $this->httpClient->send($request);
+            OperationsConverter::updateResponseBodyToObj($response);
+            return $response;
+        }
     }
 
-    /**
-     * Create a Charge
-     */
     public function charge(Charge $charge, string $requestId = "") : ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ChargeBuilder::createChargeRequest($charge, $requestId, $this->getContext());
+        $request = ChargeOperations::createChargeRequest($charge, $requestId, $this->getContext());
+
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->before($request, $this);
+        $response = $this->httpClient->send($request);
+        $this->after($response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-     * Retrieve a Charge
-     */
     public function retrieveCharge(string $chargeId, string $requestId = "") : ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ChargeBuilder::createGetChargeRequest($chargeId, $requestId, $this->getContext());
+        $request = ChargeOperations::createGetChargeRequest($chargeId, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-     * Capture a Charge
-     */
     public function captureCharge(Charge $charge, string $chargeId, string $requestId = "") : ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ChargeBuilder::createCaptureChargeRequest($charge, $chargeId, $requestId, $this->getContext());
+        $request = ChargeOperations::createCaptureChargeRequest($charge, $chargeId, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-     * Refund a Charge
-     */
     public function refundCharge(Charge $charge, string $chargeId, string $requestId = "") : ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ChargeBuilder::createRefundChargeRequest($charge, $chargeId, $requestId, $this->getContext());
+        $request = ChargeOperations::createRefundChargeRequest($charge, $chargeId, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-     * Get a refund by ID.
-     */
     public function getRefundDetail(string $chargeId, string $refundId, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ChargeBuilder::refundBy($chargeId, $refundId, $requestId, $this->getContext());
+        $request = ChargeOperations::refundBy($chargeId, $refundId, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-    * Create a Card
-    */
     public function createCard(Card $card, $customerID, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = CardBuilder::createCard($card, $customerID, $requestId, $this->getContext());
+        $request = CardOperations::createCard($card, $customerID, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-    * Delete a Card
-    */
     public function deleteCard($customerID, string $cardId, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = CardBuilder::deleteCard($customerID, $cardId, $requestId, $this->getContext());
+        $request = CardOperations::deleteCard($customerID, $cardId, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-    * Get all cards
-    */
     public function getAllCardsFor($customerID, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = CardBuilder::getAllCards($customerID, $requestId, $this->getContext());
+        $request = CardOperations::getAllCards($customerID, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
 
-    /**
-    * Create a token
-    */
     public function createCardFromToken($customerID, string $tokenValue, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = CardBuilder::createCardFromToken($customerID, $tokenValue, $requestId, $this->getContext());
+        $request = CardOperations::createCardFromToken($customerID, $tokenValue, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-    * Create a token
-    */
+
     public function createToken($body, bool $isIE = false, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = TokenBuilder::createToken($body, $isIE, $requestId, $this->getContext());
+        $request = TokenOperations::createToken($body, $isIE, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-    * Create a debit
-    */
+
     public function debit(ECheck $debitBody, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ECheckBuilder::debit($debitBody, $requestId, $this->getContext());
+        $request = ECheckOperations::debit($debitBody, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-    * Retrieve an Echeck
-    */
     public function retrieveECheck(string $echeckId, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ECheckBuilder::retrieveECheck($echeckId, $requestId, $this->getContext());
+        $request = ECheckOperations::retrieveECheck($echeckId, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-    * Void or Refund an Echeck
-    */
     public function voidOrRefundEcheck(ECheck $echeck, string $echeckId, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ECheckBuilder::voidOrRefundEcheck($echeck, $echeckId, $requestId, $this->getContext());
+        $request = ECheckOperations::voidOrRefundEcheck($echeck, $echeckId, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-    * Retrieve a refund
-    */
     public function retrieveRefund(string $echeckId, string $refundId, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = ECheckBuilder::retrieveRefund($echeckId, $refundId, $requestId, $this->getContext());
+        $request = ECheckOperations::retrieveRefund($echeckId, $refundId, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-    * Create a bank account
-    */
     public function createBankAccount(BankAccount $account, $customerID, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = BankAccountBuilder::createBankAccount($account, $customerID, $requestId, $this->getContext());
+        $request = BankAccountOperations::createBankAccount($account, $customerID, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-    * Create a bank account from token
-    */
     public function createBankAccountFromToken($customerID, string $tokenValue, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = BankAccountBuilder::createBankAccountFromToken($customerID, $tokenValue, $requestId, $this->getContext());
+        $request = BankAccountOperations::createBankAccountFromToken($customerID, $tokenValue, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-    * Delete a bank account
-    */
     public function deleteBankAccount($customerID, string $bankAccountId, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = BankAccountBuilder::deleteBankAccountFor($customerID, $bankAccountId, $requestId, $this->getContext());
+        $request = BankAccountOperations::deleteBankAccount($customerID, $bankAccountId, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
-    /**
-    * Get all bank account
-    */
     public function getAllBankAccount($customerID, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = BankAccountBuilder::getAllbankAccountsFor($customerID, $requestId, $this->getContext());
+        $request = BankAccountOperations::getAllbankAccountsFor($customerID, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
 
-    /**
-    * Get all bank account
-    */
-    public function getABankAccount($customerID, string $bankAccountId, string $requestId = ""): ResponseInterface
+    public function getBankAccount($customerID, string $bankAccountId, string $requestId = ""): ResponseInterface
     {
         if (empty($requestId)) {
             $requestId = ClientContext::generateRequestID();
         }
-        $request = BankAccountBuilder::getAbankAccountFor($customerID, $bankAccountId, $requestId, $this->getContext());
+        $request = BankAccountOperations::getBankAccountFor($customerID, $bankAccountId, $requestId, $this->getContext());
+        $this->before($request, $this);
         $response = $this->httpClient->send($request);
-        FacadeConverter::updateResponseBodyToObj($response);
+        $this->after($response, $this);
+        $this->intercept($request, $response, $this);
+        OperationsConverter::updateResponseBodyToObj($response);
         return $response;
     }
 
+    private function intercept(RequestInterface $request, ResponseInterface $response)
+    {
+        $interceptors = $this->interceptors;
+        foreach ($this->interceptors as $interceptor) {
+            $interceptor->intercept($request, $response, $this);
+        }
+    }
 
+    private function before(RequestInterface &$request, PaymentClient $client)
+    {
+        $interceptors = $this->interceptors;
+        foreach ($this->interceptors as $interceptor) {
+            $interceptor->before($request, $client);
+        }
+    }
+
+    private function after(ResponseInterface &$response, PaymentClient $client)
+    {
+        $interceptors = $this->interceptors;
+        foreach ($this->interceptors as $interceptor) {
+            $interceptor->after($response, $client);
+        }
+    }
 
     public function getUrl()
     {
@@ -423,8 +467,8 @@ class PaymentClient
 
     public function addInterceptor($name, $interceptor)
     {
-        $interceptor = $this->getInterceptor($name);
-        if (!isset($interceptor)) {
+        $theInterceptor = $this->getInterceptor($name);
+        if (!isset($theInterceptor)) {
             $this->interceptors[$name] = $interceptor;
         } else {
             throw new \RuntimeException("Interceptor with name: " . $name . " already exists.");
@@ -432,8 +476,13 @@ class PaymentClient
         return $this;
     }
 
-    public function removeInterceptor()
+    public function removeInterceptor($name)
     {
+        if (array_key_exists($name, $this->interceptors)) {
+            unset($this->interceptors[$name]);
+        } else {
+            throw new \RuntimeException("Interceptor with name: " . $name . " cannot be deleted. It does not exist.");
+        }
     }
 
     /**

@@ -12,8 +12,8 @@ final class GuzzleClientTest extends TestCase
 {
   private function createClient() : OAuth2Authenticator {
     $oauth2Helper = OAuth2Authenticator::create([
-      'client_id' => 'L0vmMZIfwUBfv9PPM96dzMTYATnLs6TSAe5SyVkt1Z4MAsvlCU',
-      'client_secret' => '2ZZnCnnDyoZxUlVCP1D9X7khxA3zuXMyJE4cHXdq',
+      'client_id' => 'Q0K5t9wvMNSAMxsxfydrKY9RqBwIMCLF2wt8kOs9L4z6V69XuY',
+      'client_secret' => 'DoMR0sxz4aRqpizlc1XD5hwVLcN1Ep8MtPuOIJFs',
       'redirect_uri' => 'https://developer.intuit.com/v2/OAuth2Playground/RedirectUrl',
       'environment' => 'development'
     ]);
@@ -37,7 +37,7 @@ final class GuzzleClientTest extends TestCase
   public function testSuccessRefreshTokenSentByGuzzleClient(): void
   {
     $oauth2Helper = $this->createClient();
-    $token = "Q011566515029GAOmrmBNcRcwgromiuZUX6vUSZyKhueJIJEET";
+    $token = "Q0115689456794aGNZ0Im22QhmA7im7f9Pi4OTperVKSWxEDT7";
     $request = $oauth2Helper->createRequestToRefresh($token);
     $client = new GuzzleClient();
     $response = $client->send($request);

@@ -29,5 +29,4 @@ use QuickBooksOnline\Payments\HttpClients\Response\{ResponseInterface};
       */
      public function enableDebug();
      public function getDebugInfo();
-
-}
+ }

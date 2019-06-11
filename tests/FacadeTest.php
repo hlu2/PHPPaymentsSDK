@@ -3,14 +3,14 @@ declare(strict_types=1);
 
 namespace QuickBooksOnline\Tests;
 
-use QuickBooksOnline\Payments\Facade\FacadeConverter;
+use QuickBooksOnline\Payments\Operations\OperationsConverter;
 
 
-final class FacadeTest extends TestCase
+final class OperationsTest extends TestCase
 {
     public function testJsonDecode(): void
     {
         $this->expectException(\RuntimeException::class);
-        FacadeConverter::objectFrom("something, is not json}", "Charge");
+        OperationsConverter::objectFrom("something, is not json}", "Charge");
     }
 }

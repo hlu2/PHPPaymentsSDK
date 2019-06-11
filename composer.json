@@ -13,6 +13,7 @@
     "phpunit/phpunit": "^8"
   },
   "require": {
-    "guzzlehttp/guzzle": "^6.3"
+    "guzzlehttp/guzzle": "^6.3",
+    "psr/log": "^1.0.1"
   }
 }

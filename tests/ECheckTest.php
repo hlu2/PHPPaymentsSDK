@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace QuickBooksOnline\Tests;
 
 use PHPUnit\Framework\TestCase;
-use QuickBooksOnline\Payments\Facade\ECheckBuilder;
+use QuickBooksOnline\Payments\Operations\ECheckOperations;
 use QuickBooksOnline\Payments\PaymentClient;
 
 final class ECheckTest extends TestCase
@@ -16,7 +16,7 @@ final class ECheckTest extends TestCase
 
     private function createECheckBody()
     {
-        $echeckBody = ECheckBuilder::buildFrom([
+        $echeckBody = ECheckOperations::buildFrom([
           "bankAccount"=> [
        "phone"=> "1234567890",
        "routingNumber"=> "490000018",
@@ -77,15 +77,14 @@ final class ECheckTest extends TestCase
         $echeckBody = $this->createECheckBody();
         $response = $client->debit($echeckBody);
         $id = $response->getBody()->id;
-        $body = ECheckBuilder::buildFrom([
+        $body = ECheckOperations::buildFrom([
            "amount" => 5.55
         ]);
         $response = $client->voidOrRefundEcheck($body, $id);
-        var_dump($response);
-        // $this->assertEquals(
-        //     $response->getBody()->amount,
-        //     $echeckBody->amount
-        // );
+        $this->assertEquals(
+            $response->getBody()->amount,
+            $echeckBody->amount
+        );
     }
 
 

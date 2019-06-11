@@ -1,7 +1,7 @@
 <?php
 namespace QuickBooksOnline\Payments;
 
-use QuickBooksOnline\Payments\Facade\FacadeConverter;
+use QuickBooksOnline\Payments\Operations\OperationsConverter;
 
 class ClientContext
 {
@@ -115,13 +115,13 @@ class ClientContext
      */
     public function setEnviornment($environment)
     {
-      $env = strtolower($environment);
-      if (substr($env, 0, strlen("prod")) === "prod") {
-          $this->baseUrl =  ClientContext::PRODUCTION_URL;
-      } else {
-          $this->baseUrl =  ClientContext::SANDBOX_URL;
-      }
-      return $this;
+        $env = strtolower($environment);
+        if (substr($env, 0, strlen("prod")) === "prod") {
+            $this->baseUrl =  ClientContext::PRODUCTION_URL;
+        } else {
+            $this->baseUrl =  ClientContext::SANDBOX_URL;
+        }
+        return $this;
     }
 
     /**
@@ -147,5 +147,4 @@ class ClientContext
 
         return $this;
     }
-
 }

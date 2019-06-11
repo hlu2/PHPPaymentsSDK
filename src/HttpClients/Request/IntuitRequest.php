@@ -1,19 +1,21 @@
 <?php
 namespace QuickBooksOnline\Payments\HttpClients\Request;
 
-class IntuitRequest implements RequestInterface{
-
+class IntuitRequest implements RequestInterface
+{
     private $method;
     private $url;
     private $header;
     private $body;
     private $requestType;
 
-    public function __construct($type){
-      $this->setRequestType($type);
+    public function __construct($type)
+    {
+        $this->setRequestType($type);
     }
 
-    public function setMethod($method){
+    public function setMethod($method)
+    {
         $this->method = $method;
         return $this;
     }
@@ -30,12 +32,12 @@ class IntuitRequest implements RequestInterface{
 
     public function setUrl($url)
     {
-      if(!isset($url) || empty($url)){
-         throw new InvalidArgumentException("invalid URL.");
-      }else{
-         $this->url = $url;
-      }
-      return $this;
+        if (!isset($url) || empty($url)) {
+            throw new InvalidArgumentException("invalid URL.");
+        } else {
+            $this->url = $url;
+        }
+        return $this;
     }
 
 
@@ -46,13 +48,13 @@ class IntuitRequest implements RequestInterface{
 
     public function setHeader($header)
     {
-      if(isset($header) && !empty($header) && is_array($header)){
-        $this->header = $header;
-      }else{
-        throw new InvalidArgumentException("invalid header for request");
-      }
+        if (isset($header) && !empty($header) && is_array($header)) {
+            $this->header = $header;
+        } else {
+            throw new InvalidArgumentException("invalid header for request");
+        }
 
-      return $this;
+        return $this;
     }
 
     public function getBody()
@@ -62,18 +64,19 @@ class IntuitRequest implements RequestInterface{
 
     public function setBody($body)
     {
-      if($this->getMethod() !== RequestInterface::POST){
-        throw new InvalidArgumentException("Cannot Set body for GET request");
-      }
-      $this->body = $body;
-      return $this;
+        if ($this->getMethod() !== RequestInterface::POST) {
+            throw new InvalidArgumentException("Cannot Set body for GET request");
+        }
+        $this->body = $body;
+        return $this;
     }
 
-    public function getRequestType(){
-       return $this->requestType;
+    public function getRequestType()
+    {
+        return $this->requestType;
     }
-    public function setRequestType($type){
-       $this->requestType = $type;
+    public function setRequestType($type)
+    {
+        $this->requestType = $type;
     }
-
 }

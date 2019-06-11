@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace QuickBooksOnline\Tests;
 
 use PHPUnit\Framework\TestCase;
-use QuickBooksOnline\Payments\Facade\ChargeBuilder;
+use QuickBooksOnline\Payments\Operations\ChargeOperations;
 use QuickBooksOnline\Payments\PaymentClient;
 
 final class ChargeTest extends TestCase
@@ -16,7 +16,7 @@ final class ChargeTest extends TestCase
 
     private function createChargeBody()
     {
-        $chargeBody = ChargeBuilder::buildFrom([
+        $chargeBody = ChargeOperations::buildFrom([
             "amount" => "10.55",
             "currency" => "USD",
             "capture" => false,
@@ -44,7 +44,7 @@ final class ChargeTest extends TestCase
 
     private function createChargeBodyWithCapture()
     {
-        $chargeBody = ChargeBuilder::buildFrom([
+        $chargeBody = ChargeOperations::buildFrom([
             "amount" => "10.55",
             "currency" => "USD",
             "card" => [
@@ -73,7 +73,7 @@ final class ChargeTest extends TestCase
 
     private function createRefundBody()
     {
-        $chargeBody = ChargeBuilder::buildFrom([
+        $chargeBody = ChargeOperations::buildFrom([
             "amount" => "10.55",
             "description" => "first refund",
             "id" => "E5753FS0CL2F"
@@ -83,7 +83,7 @@ final class ChargeTest extends TestCase
 
     private function createCaptureBody()
     {
-        $chargeBody = ChargeBuilder::buildFrom([
+        $chargeBody = ChargeOperations::buildFrom([
             "amount" => "10.55",
             "context" => [
                 "mobile" => "false",
@@ -159,6 +159,7 @@ final class ChargeTest extends TestCase
         $id = $chargeResponse->id;
         $response = $client->refundCharge($this->createRefundBody(), $id, rand() . "abd");
         $refundResponse = $response->getBody();
+
         $this->assertEquals(
             $refundResponse->status,
             "ISSUED"

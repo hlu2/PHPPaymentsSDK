@@ -5,7 +5,7 @@ namespace QuickBooksOnline\Tests;
 
 use PHPUnit\Framework\TestCase;
 use QuickBooksOnline\Payments\PaymentClient;
-use QuickBooksOnline\Payments\Facade\ChargeBuilder;
+use QuickBooksOnline\Payments\Operations\ChargeOperations;
 use QuickBooksOnline\Payments\OAuth\{DiscoverySandboxURLs, DiscoveryURLs, OAuth2Authenticator, OAuth1Encrypter};
 use QuickBooksOnline\Payments\HttpClients\Request\{RequestInterface, IntuitRequest, RequestFactory};
 
@@ -160,26 +160,7 @@ final class OAuth2Test extends TestCase
     $oauth2Helper = $this->createClient();
     $refreshToken = "someRefreshToken";
     $request = $oauth2Helper->createRequestToRevoke($refreshToken);
-    $client = new PaymentClient();
-    $response = $client->send($refreshTokenRequest);
-    $oauthToken = $response->getBody();
-    $client->updateToken($oauthToken);
 
-    $chargeBody = ChargeBuilder::buildFrom([
-        "amount" => "10.55",
-        "description" => "first refund",
-        "id" => "E5753FS0CL2F"
-    ]);
-
-    $chargeRequest = ChargeBuilder::createChargeRequest($chargeBody, string $requestId, $client);
-    $client->send($chargeRequest);
-
-
-
-    $this->assertInstanceOf(
-        RequestInterface::class,
-        $request
-    );
     $body = json_encode(array( "token" => $refreshToken));
     $acturalBody = $request->getBody();
 
@@ -227,8 +208,6 @@ final class OAuth2Test extends TestCase
       $result,
       "hbXtg1Foug2WKXEu%2Fz1lRpe5rbk%3D"
     );
-
-
-
   }
+
 }

@@ -1,5 +1,6 @@
 <?php
 namespace QuickBooksOnline\Payments\HttpClients\Response;
+
 use QuickBooksOnline\Payments\HttpClients\Request\RequestInterface;
 
 /**
