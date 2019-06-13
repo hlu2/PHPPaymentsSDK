@@ -120,28 +120,52 @@ $authorizationCodeURL = $oauth2Helper->generateAuthCodeURL($scope);
 //Exchange code for token
 $code = "someCode";
 $request = $oauth2Helper->createRequestToExchange($code);
+$response = $client->send($request);
 
-$client->send($request);
-// use the Stripe API client as you normally would
+//Get the keys
+$array = json_decode($response->getBody(), true);
+$refreshToken = $array["refresh_token"];
 ```
 
 ## Interceptors
 
-Developers can define their own interceptors to intercept request and response. THe default interceptor this SDK
-provides is Logging interceptor.
+Interceptors are used to intercept requests and response.
 
+Developers can define their own interceptors to intercept request and response by inheriting `InterceptorInterface`.
+
+To change the request send, define your `before(RequestInterface &$request, PaymentClient $client)` method.
+To change the response received, define your `after(ResponseInterface &$response, PaymentClient $client)` method. 
+To intercept the request and response, but don't alter them, define your `intercept(RequestInterface $request, ResponseInterface $response, PaymentClient $client)` method.
+
+THe default interceptors provided in this SDK are:
+ - ConsoleLoggerInterceptor
+ - LoggingInterceptor
+ - ExceptionOnErrorInterceptor
+
+In order to add interceptor to the client, use:
 
 ```php
-$client = new PaymentClient([
-  'access_token' : ""
-  'refresh_token' : ""
-]);
-
-$loggingInterceptor = new LoggingInterceptor();
-$client->addInterceptor($loggingInterceptor);
+$client->addInterceptor("interceptorName", new InterceptorImplementation());
 ```
 
-Alternately, it is up to the developer to create their own interceptors to intercept request and response.
+To delete an interceptor by name, use:
+
+```php
+$client->removeInterceptor($name);
+```
+
+Example:
+
+To enable file storage for each acutal request and response sent by the SDK:
+```php
+$client->addInterceptor("requestresponselogger", new LoggingInterceptor("/your/directory/to/store/files", 'America/Los_Angeles'));
+```
+
+To enable logging each transaction sent by the SDK:
+```php
+$client->addInterceptor("tracelogger", new ConsoleLoggerInterceptor("/your/file/to/log/the/transaction", 'America/Los_Angeles'));
+```
+
 
 ### Calling API endpoints.
 
