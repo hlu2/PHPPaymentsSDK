@@ -10,8 +10,16 @@ class ClientContext
 
     private $accessToken;
     private $refreshToken;
-    private $enviornment;
+    private $environment;
     private $baseUrl;
+
+    public function __construct(array $context = null){
+        if(isset($context) && !empty($context)){
+             $this->setAccessToken( array_key_exists('access_token', $context) ? $context['access_token'] : null);
+             $this->setRefreshToken( array_key_exists('refresh_token', $context) ? $context['refresh_token'] : null);
+             $this->setenvironment ( array_key_exists('environment', $context) ? $context['environment'] : "");
+        }
+    }
 
     /**
      * Auto generate a 20 charactor length request ID
@@ -107,13 +115,13 @@ class ClientContext
 
 
     /**
-     * Set the value of Enviornment
+     * Set the value of environment
      *
-     * @param mixed enviornment
+     * @param mixed environment
      *
      * @return self
      */
-    public function setEnviornment($environment)
+    public function setenvironment($environment)
     {
         $env = strtolower($environment);
         if (substr($env, 0, strlen("prod")) === "prod") {

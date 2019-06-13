@@ -45,10 +45,15 @@ class PaymentClient
     private $httpClient;
 
 
-    public function __construct()
+    public function __construct(array $context = null)
     {
+        if(isset($context) && !empty($context)){
+            $this->context = new ClientContext($context);
+        }else{
+            $this->context = new ClientContext();
+        }
         $this->httpClient = ClientFactory::buildCurlClient();
-        $this->context = new ClientContext();
+
         $this->interceptors = array();
     }
 
@@ -435,15 +440,15 @@ class PaymentClient
     }
 
     /**
-     * Set the value of Enviornment
+     * Set the value of environment
      *
-     * @param mixed enviornment
+     * @param mixed environment
      *
      * @return self
      */
-    public function setEnviornment($environment)
+    public function setenvironment($environment)
     {
-        $this->context->setEnviornment($environment);
+        $this->context->setenvironment($environment);
     }
 
     /**
