@@ -84,102 +84,13 @@ $charge = ChargeOperations::buildFrom($array);
 $response = $client->charge($charge);
 $responseCharge = $response->getBody();
 
-//$responseCharge:
-class QuickBooksOnline\Payments\Modules\Charge#19 (19) {
-    public $status =>
-    string(10) "AUTHORIZED"
-    public $amount =>
-    string(5) "10.55"
-    public $currency =>
-    string(3) "USD"
-    public $token =>
-    NULL
-    public $card =>
-    class QuickBooksOnline\Payments\Modules\Card#20 (18) {
-      public $updated =>
-      NULL
-      public $name =>
-      string(9) "emulate=0"
-      public $number =>
-      string(16) "xxxxxxxxxxxx1111"
-      public $address =>
-      class QuickBooksOnline\Payments\Modules\Address#21 (5) {
-        ...
-      }
-      public $commercialCardCode =>
-      NULL
-      public $cvcVerification =>
-      NULL
-      public $cardType =>
-      string(4) "Visa"
-      public $expMonth =>
-      string(2) "02"
-      public $expYear =>
-      string(4) "2020"
-      public $default =>
-      NULL
-      public $isBusiness =>
-      NULL
-      public $isLevel3Eligible =>
-      NULL
-      public $cvc =>
-      string(3) "xxx"
-      public $entityVersion =>
-      NULL
-      public $entityId =>
-      NULL
-      public $entityType =>
-      NULL
-      public $id =>
-      NULL
-      public $created =>
-      NULL
-    }
-    public $context =>
-    class QuickBooksOnline\Payments\Modules\Context#23 (5) {
-      public $deviceInfo =>
-      class QuickBooksOnline\Payments\Modules\DeviceInfo#24 (8) {
-        ...
-      }
-      public $mobile =>
-      bool(false)
-      public $recurring =>
-      bool(false)
-      public $isEcommerce =>
-      bool(true)
-      public $tax =>
-      NULL
-    }
-    public $description =>
-    NULL
-    public $authCode =>
-    string(6) "139154"
-    public $captureDetail =>
-    NULL
-    public $refundDetaill =>
-    NULL
-    public $capture =>
-    bool(false)
-    public $avsStreet =>
-    string(4) "Pass"
-    public $avsZip =>
-    string(4) "Pass"
-    public $cardSecurityCodeMatch =>
-    string(12) "NotAvailable"
-    public $appType =>
-    NULL
-    public $cardOnFile =>
-    NULL
-    public $type =>
-    NULL
-    public $id =>
-    string(12) "EWJXWWS9IXKI"
-    public $created =>
-    string(20) "2019-06-13T22:44:06Z"
-  }
-
 ```
+The $responseCharge will have the same property names as stated in our API reference: https://developer.intuit.com/app/developer/qbpayments/docs/api/resources/all-entities/charges page,
+so to get the id, use 
 
+```php
+$id = $responseCharge->id; 
+```
 
 ## OAuth support
 
