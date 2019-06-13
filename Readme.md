@@ -3,20 +3,25 @@ QuickBooks Payments PHP SDK
 ==========================
 This SDK is designed to facilitate developers using QuickBooks Online Payments API. It provides a set of methods that make it easier to work with Intuit’s Payments API. It supports the following operations:
 
- - Standard OAuth 2 support
- - Interceptors
- - Individual API endpoints
+ - Standard OAuth 2.0 and OpenID Connect protocols
+ - Interceptors for logging and error handling
+ - Standard Payments API endpoint request
 
-If you have not had an account with QuickBooksOnline, please register at https://developer.intuit.com
+If you have not used with QuickBooks Online Payments API, please go to our docs at: https://developer.intuit.com/app/developer/qbpayments/docs/get-started
 
 ## Requirements
 
-PHP 7.0.0 and later.
+   1. PHP 7.0.0 and later.
+   2. App for QuickBooks Online Payments API.
+
 
 ## Composer
 
 You can install the bindings via [Composer](http://getcomposer.org/). Run the following command:
 
+```php
+   Not known yet
+```
 
 To use the bindings, use Composer's [autoload](https://getcomposer.org/doc/01-basic-usage.md#autoloading):
 
@@ -29,7 +34,7 @@ require_once('vendor/autoload.php');
 If you do not wish to use Composer, you can download the [latest release](...). Then, to use the bindings, include the `init.php` file.
 
 ```php
-require_once('/path/to/stripe-php/init.php');
+require_once('/path/to/init.php');
 ```
 
 ## Dependencies
@@ -49,8 +54,8 @@ Simple usage looks like:
 
 ```php
 $client = new PaymentClient([
-  'access_token' : ""
-  'refresh_token' : ""
+  'access_token' : "your access token"
+  'refresh_token' : "your refresh token"
 ]);
 
 $array = [
